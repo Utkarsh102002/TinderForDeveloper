@@ -9,6 +9,7 @@ import Feed from "./components/Feed";
 import Connections from "./components/Connections";
 import Requests from "./components/Requests";
 import EditProfile from "./components/EditProfile";
+import Premium from "./components/Premium";
 
 function App() {
   return (
@@ -27,6 +28,7 @@ function App() {
             <Route path="profile" element={<Profile />} />
             <Route path="profile/edit" element={<EditProfile />} />
             <Route path="connections" element={<Connections />} />
+            <Route path="premium" element={<Premium />} />
             <Route path="requests" element={<Requests />} />
           </Route>
         </Routes>

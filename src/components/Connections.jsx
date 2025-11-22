@@ -55,8 +55,10 @@ const Connections = () => {
               </h2>
               {age && gender && <p>{age + ", " + gender}</p>}
               <p>{about}</p>
+              <Link to={"/chat/"+_id}>
+                <button className="btn btn-primary">Chat</button>
+              </Link>
             </div>
-            
           </div>
         );
       })}

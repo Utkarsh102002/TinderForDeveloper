@@ -1,10 +1,11 @@
-import React from "react";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { createSocketConnection } from "../utils/socket";
 import { useSelector } from "react-redux";
 import axios from "axios";
 import { BASE_URL } from "../utils/constant";
+
+let socket; 
 
 const Chat = () => {
   const { targetUserId } = useParams();
@@ -18,8 +19,6 @@ const Chat = () => {
       withCredentials: true,
     });
 
-    console.log(chat.data.messages);
-
     const chatMessages = chat?.data?.messages.map((msg) => {
       const { senderId, text } = msg;
       return {
@@ -28,18 +27,19 @@ const Chat = () => {
         text,
       };
     });
+
     setMessages(chatMessages);
   };
+
   useEffect(() => {
     fetchChatMessages();
   }, []);
 
   useEffect(() => {
-    if (!userId) {
-      return;
-    }
-    const socket = createSocketConnection();
-    // As soon as the page loaded, the socket connection is made and joinChat event is emitted
+    if (!userId) return;
+
+    socket = createSocketConnection(); 
+
     socket.emit("joinChat", {
       firstName: user.firstName,
       userId,
@@ -47,18 +47,15 @@ const Chat = () => {
     });
 
     socket.on("messageReceived", ({ firstName, lastName, text }) => {
-      console.log(firstName + " :  " + text);
-      setMessages((messages) => [...messages, { firstName, lastName, text }]);
+      setMessages((prev) => [...prev, { firstName, lastName, text }]);
     });
 
-    // socket disscount is very imp
     return () => {
       socket.disconnect();
     };
   }, [userId, targetUserId]);
 
   const sendMessage = () => {
-    const socket = createSocketConnection();
     socket.emit("sendMessage", {
       firstName: user.firstName,
       lastName: user.lastName,
@@ -66,48 +63,36 @@ const Chat = () => {
       targetUserId,
       text: newMessage,
     });
+
     setNewMessage("");
   };
 
   return (
     <div className="w-3/4 mx-auto border border-gray-600 m-5 h-[70vh] flex flex-col">
       <h1 className="p-5 border-b border-gray-600">Chat</h1>
+
       <div className="flex-1 overflow-scroll p-5">
-        {messages.map((msg, index) => {
-          return (
-            <div
-              key={index}
-              className={
-                "chat " +
-                (user.firstName === msg.firstName ? "chat-end" : "chat-start")
-              }
-            >
-              <div className="chat-header">
-                {`${msg.firstName}  ${msg.lastName}`}
-                <time className="text-xs opacity-50"> 2 hours ago</time>
-              </div>
-              <div className="chat-bubble">{msg.text}</div>
-              <div className="chat-footer opacity-50">Seen</div>
+        {messages.map((msg, index) => (
+          <div
+            key={index}
+            className={
+              "chat " +
+              (user.firstName === msg.firstName ? "chat-end" : "chat-start")
+            }
+          >
+            <div className="chat-header">
+              {msg.firstName + " " + msg.lastName}
             </div>
-          );
-        })}
+            <div className="chat-bubble">{msg.text}</div>
+          </div>
+        ))}
       </div>
+
       <div className="p-5 border-t border-gray-600 flex items-center gap-2">
         <input
           value={newMessage}
           onChange={(e) => setNewMessage(e.target.value)}
-          className="
-    w-full
-    px-4 py-2
-    rounded-xl
-    bg-white dark:bg-neutral-800
-    text-black dark:text-white
-    placeholder-gray-500 dark:placeholder-gray-400
-    border border-gray-300 dark:border-neutral-700
-    focus:outline-none
-    focus:ring-2 focus:ring-blue-500
-    shadow-sm
-  "
+          className="w-full px-4 py-2 rounded-xl border"
           placeholder="Type your message..."
         />
 
@@ -118,4 +103,5 @@ const Chat = () => {
     </div>
   );
 };
+
 export default Chat;
